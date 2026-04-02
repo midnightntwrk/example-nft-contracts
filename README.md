@@ -1,72 +1,254 @@
-# Midnight Template Repository
+# <img src="https://midnight.network/brand-hub/logo-compact-dark.svg" alt="Midnight Network" width="24" height="24"> Midnight Contracts Library
 
-This GitHub repository should be used as a template when creating a new Midnight GitHub repository.
-The template is configured with default repository settings and a set of default files that are expected to exist in all Midnight GitHub repositories.
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)](./contracts/tokens/nft/src/test/)
 
-### LICENSE
+## 🎯 Library Objectives
 
-Apache 2.0.
+A comprehensive **smart contract library** for the Midnight blockchain ecosystem. This library provides production-ready, auditable, and reusable contract implementations written in the Compact language.
 
-### README.md
+- **Accelerate Development**: Use ready-to-integrate, well-tested contract modules for a wide range of use cases
+- **Promote Reusability**: Import and compose modular contracts for tokens, governance, privacy, and more
+- **Ensure Security**: All modules are designed with security and best practices in mind
+- **Enable Customization**: Build your own authorization, business logic, and workflows on top of robust primitives
+- **Foster Innovation**: Focus on your application logic, not reinventing contract basics
+- **Maintain Quality**: Comprehensive testing, documentation, and continuous integration
+- **Support Privacy**: Special focus on privacy-preserving and zero-knowledge contract patterns
 
-Provides a brief description for users and developers who want to understand the purpose, setup, and usage of the repository.
+## 🎯 Library Architecture
 
-### SECURITY.md
+This isn't just contracts - it's a **modular library**:
 
-Provides a brief description of the Midnight Foundation's security policy and how to properly disclose security issues.
+- 📦 **Import modules**: Get core functionality.
+- 🔧 **Add your logic**: Wrap circuits with your own logic or export them directly from your contract.
+- 🎨 **Unlimited flexibility**: Create any governance, payment, or access control system
 
-### CONTRIBUTING.md
+### The Modular Pattern
+```
+modules/Nft   - Core module for public NFTs
+modules/NftZk - Core module for privacy NFTs
+```
+Just import it in your contract to get access to all the circuits.
+```
+import "midnight-contracts/contracts/tokens/nft/src/modules/Nft";
+```
 
-Provides guidelines for how people can contribute to the Midnight project.
+**Key insight**: The modules give you ALL the circuits. YOU decide how to authorize them.
 
-### CODEOWNERS
+## 🚀 Quick Start
 
-Defines repository ownership rules.
+### Installation
 
-### ISSUE_TEMPLATE
+Currently available as a GitHub dependency while we prepare for npm publishing:
 
-Provides templates for reporting various types of issues, such as: bug report, documentation improvement and feature request.
+```json
+{
+  "dependencies": {
+    "midnight-contracts": "git+https://github.com/riusricardo/midnight-contracts.git"
+  }
+}
+```
 
-### PULL_REQUEST_TEMPLATE
+Or install directly:
 
-Provides a template for a pull request.
+```bash
+# Using npm
+npm install git+https://github.com/riusricardo/midnight-contracts.git
 
-### CLA Assistant
+# Using yarn
+yarn add git+https://github.com/riusricardo/midnight-contracts.git
+```
 
-The Midnight Foundation appreciates contributions, and like many other open source projects asks contributors to sign a contributor
-License Agreement before accepting contributions. We use CLA assistant (https://github.com/cla-assistant/cla-assistant) to streamline the CLA
-signing process, enabling contributors to sign our CLAs directly within a GitHub pull request.
+## ⚙️ Compact Compiler Path Setup
 
-### Dependabot
+The Compact compiler (`compactc`) needs to know where to find imported libraries, especially when using dependencies installed in `node_modules`.
 
-The Midnight Foundation uses GitHub Dependabot feature to keep our projects dependencies up-to-date and address potential security vulnerabilities.
+**Set the `COMPACT_PATH` environment variable before compiling:**
 
-### Checkmarx
+```bash
+export COMPACT_PATH="$COMPACT_PATH:./node_modules:../node_modules"
+```
 
-The Midnight Foundation uses Checkmarx for application security (AppSec) to identify and fix security vulnerabilities.
-All repositories are scanned with Checkmarx's suite of tools including: Static Application Security Testing (SAST), Infrastructure as Code (IaC), Software Composition Analysis (SCA), API Security, Container Security and Supply Chain Scans (SCS).
+- This ensures the compiler can resolve imports from your project's `node_modules` and any parent directory's `node_modules`.
+- You can add this line to your shell profile (e.g., `.bashrc`, `.zshrc`) or run it in your terminal before running any Compact compilation commands.
+- The provided `yarn compact` and `npm run compact` scripts already set this variable automatically.
 
-### Unito
+**Why is this needed?**
 
-Facilitates two-way data synchronization, automated workflows and streamline processes between: Jira, GitHub issues and Github project Kanban board.
+Compact modules and libraries are distributed via npm and installed in `node_modules`. Setting `COMPACT_PATH` allows the compiler to find and use these dependencies just like with JavaScript/TypeScript projects.
 
-# TODO - New Repo Owner
+### Basic Usage
 
-### Software Package Data Exchange (SPDX)
-Include the following Software Package Data Exchange (SPDX) short-form identifier in a comment at the top headers of each source code file.
+```compact
+pragma language_version 0.16;
 
+import CompactStandardLibrary;
+import "midnight-contracts/contracts/tokens/nft/src/modules/Nft";
 
- <I>// This file is part of <B>REPLACE WITH REPO-NAME</B>.<BR>
- // Copyright (C) Midnight Foundation<BR>
- // SPDX-License-Identifier: Apache-2.0<BR>
- // Licensed under the Apache License, Version 2.0 (the "License");<BR>
- // You may not use this file except in compliance with the License.<BR>
- // You may obtain a copy of the License at<BR>
- //<BR>
- //	https://www.apache.org/licenses/LICENSE-2.0<BR>
- //<BR>
- // Unless required by applicable law or agreed to in writing, software<BR>
- // distributed under the License is distributed on an "AS IS" BASIS,<BR>
- // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.<BR>
- // See the License for the specific language governing permissions and<BR>
- // limitations under the License.</I>
+// 1. Export safe circuits directly from module
+export { 
+  balanceOf,
+  ownerOf,
+  approve,
+  getApproved,
+  setApprovalForAll,
+  isApprovedForAll,
+  transfer,
+  transferFrom
+};
+
+// 2. Create your authorization wrapper
+export circuit mintPaid(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
+  // Add payment logic, governance, time locks, etc.
+  assert(paymentReceived(), "Payment required");
+  mint(to, tokenId);
+}
+
+// 3. Your wrapped version replaces the raw circuit
+```
+
+## 📦 Available Modules
+
+### Token Modules
+
+#### 🎨 NFT (Non-Fungible Token)
+
+- **Module**: `contracts/tokens/nft/src/modules/Nft.compact`
+- **Exports**: `mint`, `burn`, `transfer`, `approve`, `balanceOf`, `ownerOf`, etc.
+- **Description**: Complete ERC721-like NFT implementation
+- **Your choice**: Add payment, governance, time-locks, or any authorization you want
+
+#### 🔒 NFT-ZK (Privacy-Preserving NFT)
+
+- **Module**: `contracts/tokens/nft-zk/src/modules/NftZk.compact`
+- **Exports**: `mint`, `burn`, `transfer`, `approve`, `balanceOf`, `ownerOf`, etc.
+- **Description**: Privacy-focused NFT with hidden ownership using zero-knowledge proofs
+- **Your choice**: Add anonymous payments, private governance, or confidential authorization
+
+## 🛠️ Usage Examples
+
+### Example 1: Admin-Only NFT (Simple)
+
+```compact
+pragma language_version 0.16;
+
+import CompactStandardLibrary;
+import "midnight-contracts/contracts/tokens/nft/src/modules/Nft";
+
+// Export safe circuits from the module
+export { 
+  balanceOf,
+  ownerOf,
+  approve,
+  getApproved,
+  setApprovalForAll,
+  isApprovedForAll,
+  transfer,
+  transferFrom
+};
+
+export ledger contractAdmin: ZswapCoinPublicKey;
+
+constructor() {
+  contractAdmin = ownPublicKey();
+}
+
+// Only admin can mint tokens
+export circuit mintAdmin(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
+  const senderPublicKey = ownPublicKey();
+  assert(senderPublicKey == contractAdmin, "Not authorized to mint.");
+  mint(to, tokenId);
+}
+
+// Only admin can burn tokens
+export circuit burnAdmin(tokenId: Uint<64>): [] {
+  const senderPublicKey = ownPublicKey();
+  assert(senderPublicKey == contractAdmin, "Not authorized to burn.");
+  const tokenOwner = ownerOf(tokenId);
+  burn(tokenOwner, tokenId);
+}
+```
+
+### Example 2: Payment-Based NFT (Advanced)
+
+```compact
+pragma language_version 0.16;
+
+import CompactStandardLibrary;
+import "midnight-contracts/contracts/tokens/nft/src/modules/Nft";
+
+export { 
+  balanceOf,
+  ownerOf,
+  transfer,
+  approve
+};
+
+export ledger mintPrice: Uint<64>;
+export ledger treasury: ZswapCoinPublicKey;
+
+constructor() {
+  mintPrice = 1000n;
+  treasury = ownPublicKey();
+}
+
+// Anyone can mint by paying
+export circuit mintPaid(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
+  // Verify payment (implementation would check actual payment)
+  assert(paymentAmount() >= mintPrice, "Insufficient payment");
+  
+  // Process payment to treasury 
+  ...
+```
+
+## 🔧 Development Setup
+
+### Prerequisites
+
+- Node.js 20+
+- Yarn or npm
+- Midnight development environment
+
+### Local Development
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/riusricardo/midnight-contracts.git
+   cd midnight-contracts
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   yarn install
+   ```
+
+3. **Build contracts**
+
+   ```bash
+   yarn compact
+   yarn build
+   ```
+
+4. **Run tests**
+   ```bash
+   yarn test
+   ```
+
+## 📄 License
+
+This project is licensed under the **GNU General Public License v3.0** - see the [LICENSE](LICENSE) file for details.
+
+### What this means:
+
+- ✅ **Free to use** in open source projects
+- ✅ **Free to modify** and distribute
+- ⚠️ **Must remain open source** if distributed
+- ⚠️ **Must include license notice** in derivative works
+
+---
+
+**Built with ❤️ for the Midnight ecosystem**
+
+_Empowering developers to build privacy-first applications with confidence._
