@@ -1,0 +1,136 @@
+// This file is part of midnightntwrk/example-nft-contracts.
+// Copyright (C) Midnight Foundation
+// SPDX-License-Identifier: Apache-2.0
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+module Nft {
+
+  import CompactStandardLibrary;
+
+  export ledger tokenOwner: Map<Uint<64>, ZswapCoinPublicKey>;
+  export ledger tokenApprovals: Map<Uint<64>, ZswapCoinPublicKey>;
+  export ledger ownedTokensCount: Map<ZswapCoinPublicKey, Counter>;
+  // Keyed by hash(owner, operator)
+  export ledger operatorApprovals: Map<Field, Boolean>;
+
+  export circuit balanceOf(owner: ZswapCoinPublicKey): Uint<64> {
+    assert(owner != default<ZswapCoinPublicKey>, "Owner cannot be empty.");
+    if (ownedTokensCount.member(disclose(owner))) {
+      return ownedTokensCount.lookup(disclose(owner));
+    } else {
+      return 0;
+    }
+  }
+
+  export circuit ownerOf(tokenId: Uint<64>): ZswapCoinPublicKey {
+    assert(tokenId != default<Uint<64>>, "Token ID cannot be empty.");
+    assert(tokenExists(disclose(tokenId)), "Token does not exist.");
+    return tokenOwner.lookup(disclose(tokenId));
+  }
+
+  export circuit tokenExists(tokenId: Uint<64>): Boolean {
+    return tokenOwner.member(tokenId);
+  }
+
+  export circuit approve(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
+    const senderPublicKey = ownPublicKey();
+    assert(to != default<ZswapCoinPublicKey>, "Approved address cannot be empty.");
+    const owner = ownerOf(tokenId);
+    assert(to != owner, "Cannot approve yourself.");
+    assert(senderPublicKey == owner || isApprovedForAll(owner, senderPublicKey), "Not authorized.");
+    tokenApprovals.insert(disclose(tokenId), disclose(to));
+  }
+
+  export circuit getApproved(tokenId: Uint<64>): ZswapCoinPublicKey {
+    assert(tokenId != default<Uint<64>>, "Token ID cannot be empty.");
+    assert(tokenExists(disclose(tokenId)), "Token does not exist.");
+    return tokenApprovals.lookup(disclose(tokenId));
+  }
+
+  export circuit setApprovalForAll(operator: ZswapCoinPublicKey, approved: Boolean): [] {
+    const senderPublicKey = ownPublicKey();
+    assert(operator != default<ZswapCoinPublicKey>, "Operator cannot be empty.");
+    assert(operator != senderPublicKey, "Cannot set yourself as operator.");
+    const hashKey = transientHash<[Bytes<32>, Bytes<32>]>([senderPublicKey.bytes, operator.bytes]);
+    operatorApprovals.insert(disclose(hashKey), disclose(approved));
+  }
+
+  export circuit isApprovedForAll(owner: ZswapCoinPublicKey, operator: ZswapCoinPublicKey): Boolean {
+    const hashKey = transientHash<[Bytes<32>, Bytes<32>]>([owner.bytes, operator.bytes]);
+    if (!operatorApprovals.member(disclose(hashKey))) {
+      return false;
+    }
+    return operatorApprovals.lookup(disclose(hashKey));
+  }
+
+  export circuit transfer(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
+    const senderPublicKey = ownPublicKey();
+    assert(tokenId != default<Uint<64>>, "Token ID cannot be empty.");
+    transferFrom(senderPublicKey, to, tokenId);
+  }
+
+  // Note: 'from' is reserved in Minokawa >= 0.22.0; parameter renamed to 'sender'.
+  export circuit transferFrom(sender: ZswapCoinPublicKey, to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
+    const senderPublicKey = ownPublicKey();
+    assert(tokenId != default<Uint<64>>, "Token ID cannot be empty.");
+    assert(isApprovedOrOwner(disclose(senderPublicKey), disclose(tokenId)), "Not authorized to transfer.");
+    clearApproval(disclose(sender), disclose(tokenId));
+    removeTokenFrom(disclose(sender), disclose(tokenId));
+    addTokenTo(disclose(to), disclose(tokenId));
+  }
+
+  export circuit mint(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
+    addTokenTo(disclose(to), disclose(tokenId));
+  }
+
+  export circuit burn(owner: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
+    clearApproval(disclose(owner), disclose(tokenId));
+    removeTokenFrom(disclose(owner), disclose(tokenId));
+  }
+
+  circuit isApprovedOrOwner(spender: ZswapCoinPublicKey, tokenId: Uint<64>): Boolean {
+    const owner = ownerOf(tokenId);
+    if (spender == owner) {
+      return true;
+    }
+    if (tokenApprovals.member(tokenId) && spender == tokenApprovals.lookup(tokenId)) {
+      return true;
+    }
+    return isApprovedForAll(owner, spender);
+  }
+
+  circuit addTokenTo(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
+    assert(!tokenExists(tokenId), "Token already exists.");
+    assert(to != default<ZswapCoinPublicKey>, "Recipient cannot be empty.");
+    tokenOwner.insert(tokenId, to);
+    if (!ownedTokensCount.member(to)) {
+      ownedTokensCount.insert(to, default<Counter>);
+    }
+    ownedTokensCount.lookup(to).increment(1);
+  }
+
+  // Note: 'from' is reserved in Minokawa >= 0.22.0; parameter renamed to 'sender'.
+  circuit removeTokenFrom(sender: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
+    assert(sender != default<ZswapCoinPublicKey>, "Sender cannot be empty.");
+    assert(sender == ownerOf(tokenId), "Public key is not the owner.");
+    ownedTokensCount.lookup(sender).decrement(1);
+    tokenOwner.remove(tokenId);
+  }
+
+  circuit clearApproval(owner: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
+    assert(owner == ownerOf(tokenId), "Public key is not the owner.");
+    if (ownerOf(tokenId) != default<ZswapCoinPublicKey>) {
+      tokenApprovals.remove(tokenId);
+    }
+  }
+}

@@ -1,0 +1,54 @@
+// This file is part of midnightntwrk/example-nft-contracts.
+// Copyright (C) Midnight Foundation
+// SPDX-License-Identifier: Apache-2.0
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+pragma language_version >= 0.22.0;
+
+import CompactStandardLibrary;
+import "./modules/Nft";
+
+// Export selected circuits from the Nft module.
+// 'burn' and 'mint' are not exported here as they have no authorization checks.
+// Add your own authorization wrapper around them as needed.
+export {
+  balanceOf,
+  ownerOf,
+  approve,
+  getApproved,
+  setApprovalForAll,
+  isApprovedForAll,
+  transfer,
+  transferFrom
+};
+
+export ledger contractAdmin: ZswapCoinPublicKey;
+
+constructor() {
+  contractAdmin = ownPublicKey();
+}
+
+// Example: Only the contract admin can mint tokens.
+export circuit mintAdmin(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
+  const senderPublicKey = ownPublicKey();
+  assert(senderPublicKey == contractAdmin, "Not authorized to mint.");
+  mint(to, tokenId);
+}
+
+// Example: Only the contract admin can burn tokens.
+export circuit burnAdmin(tokenId: Uint<64>): [] {
+  const senderPublicKey = ownPublicKey();
+  assert(senderPublicKey == contractAdmin, "Not authorized to burn.");
+  const tokenOwner = ownerOf(tokenId);
+  burn(tokenOwner, tokenId);
+}
