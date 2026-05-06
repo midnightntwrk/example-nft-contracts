@@ -1,0 +1,39 @@
+{
+  "name": "@midnight-ntwrk/example-nft-contracts",
+  "version": "0.1.0",
+  "description": "NFT smart contract examples for the Midnight blockchain, including a standard public NFT and a privacy-preserving ZK NFT",
+  "license": "Apache-2.0",
+  "author": "Midnight Foundation",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/midnightntwrk/example-nft-contracts.git"
+  },
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "compact": "compact compile contracts/nft/src/nft.compact contracts/managed/nft && compact compile contracts/nft-zk/src/nft-zk.compact contracts/managed/nft-zk",
+    "test": "vitest run",
+    "test:compile": "yarn compact && vitest run",
+    "lint": "eslint contracts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.28.0",
+    "@types/node": "^22.15.29",
+    "@typescript-eslint/eslint-plugin": "^8.41.0",
+    "@typescript-eslint/parser": "^8.41.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-prettier": "^5.4.1",
+    "prettier": "^3.2.5",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.0"
+  },
+  "dependencies": {
+    "@midnight-ntwrk/compact-runtime": "^0.15.0",
+    "@midnight-ntwrk/ledger-v8": "^8.0.3",
+    "@midnight-ntwrk/midnight-js-network-id": "^4.0.4",
+    "@midnight-ntwrk/midnight-js-utils": "^4.0.4",
+    "@midnight-ntwrk/wallet-sdk-address-format": "^3.0.0"
+  },
+  "packageManager": "yarn@1.22.22"
+}

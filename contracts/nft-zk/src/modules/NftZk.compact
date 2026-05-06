@@ -1,0 +1,168 @@
+// This file is part of midnightntwrk/example-nft-contracts.
+// Copyright (C) Midnight Foundation
+// SPDX-License-Identifier: Apache-2.0
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+module NftZk {
+
+  import CompactStandardLibrary;
+
+  export ledger tokenOwner: Map<Uint<64>, Field>;
+  export ledger tokenApprovals: Map<Uint<64>, Field>;
+  export ledger ownedTokensCount: Map<Field, Counter>;
+  // Keyed by hash(ownerHashKey, operatorHashKey)
+  export ledger operatorApprovals: Map<Field, Boolean>;
+
+  // Local secret: used for self-operations (minting to self, checking own balance)
+  export witness getLocalSecret(): Bytes<32>;
+  // Shared secret: used for operations involving other parties (approvals, transfers)
+  export witness getSharedSecret(): Bytes<32>;
+
+  export circuit balanceOf(owner: ZswapCoinPublicKey): Uint<64> {
+    const senderPublicKey = ownPublicKey();
+    assert(owner != default<ZswapCoinPublicKey>, "Owner cannot be empty.");
+    if(disclose(owner == senderPublicKey)){
+      const ownerHashKey = disclose(generateHashKey(senderPublicKey.bytes, getLocalSecret()));
+      if (ownedTokensCount.member(ownerHashKey)) {
+        return ownedTokensCount.lookup(ownerHashKey);
+      }
+    } else {
+      const ownerHashKey = disclose(generateHashKey(owner.bytes, getSharedSecret()));
+      if (ownedTokensCount.member(ownerHashKey)) {
+        return ownedTokensCount.lookup(ownerHashKey);
+      }
+    }
+    return 0;
+  }
+
+  export circuit ownerOf(tokenId: Uint<64>): Field {
+    assert(tokenId != default<Uint<64>>, "Token ID cannot be empty.");
+    assert(tokenExists(disclose(tokenId)), "Token does not exist.");
+    return tokenOwner.lookup(disclose(tokenId));
+  }
+
+  export circuit tokenExists(tokenId: Uint<64>): Boolean {
+    return tokenOwner.member(tokenId);
+  }
+
+  export circuit approve(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
+    const senderPublicKey = ownPublicKey();
+    assert(to != default<ZswapCoinPublicKey>, "Approved account cannot be empty.");
+    const toLocalHashKey = generateHashKey(to.bytes, getLocalSecret());
+    const ownerHashKey = ownerOf(tokenId);
+    // Note: cannot be fully trusted due to witness nature.
+    assert(toLocalHashKey != ownerHashKey, "Cannot approve yourself.");
+    const senderHashKey = generateHashKey(senderPublicKey.bytes, getLocalSecret());
+    assert(disclose(senderHashKey == ownerHashKey) || isApprovedForAll(ownerHashKey, senderHashKey), "Not authorized.");
+    const toSharedHashKey = generateHashKey(to.bytes, getSharedSecret());
+    tokenApprovals.insert(disclose(tokenId), disclose(toSharedHashKey));
+  }
+
+  export circuit getApproved(tokenId: Uint<64>): Field {
+    assert(tokenId != default<Uint<64>>, "Token ID cannot be empty.");
+    assert(tokenExists(disclose(tokenId)), "Token does not exist.");
+    return tokenApprovals.lookup(disclose(tokenId));
+  }
+
+  export circuit setApprovalForAll(operator: ZswapCoinPublicKey, approved: Boolean): [] {
+    const senderPublicKey = ownPublicKey();
+    assert(operator != default<ZswapCoinPublicKey>, "Operator cannot be empty.");
+    assert(operator != senderPublicKey, "Cannot set yourself as operator.");
+    const senderHashKey = generateHashKey(senderPublicKey.bytes, getLocalSecret());
+    const operatorHashKey = generateHashKey(operator.bytes, getSharedSecret());
+    const hashKey = transientHash<[Field, Field]>([senderHashKey, operatorHashKey]);
+    operatorApprovals.insert(disclose(hashKey), disclose(approved));
+  }
+
+  export circuit isApprovedForAll(ownerHashKey: Field, operatorHashKey: Field): Boolean {
+    const approvalHashKey = disclose(transientHash<[Field, Field]>([ownerHashKey, operatorHashKey]));
+    if (disclose(!operatorApprovals.member(approvalHashKey))) {
+      return false;
+    }
+    return operatorApprovals.lookup(disclose(approvalHashKey));
+  }
+
+  export circuit transfer(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
+    const senderPublicKey = ownPublicKey();
+    assert(tokenId != default<Uint<64>>, "Token ID cannot be empty.");
+    const senderHashKey = generateHashKey(senderPublicKey.bytes, getLocalSecret());
+    transferFrom(senderHashKey, to, tokenId);
+  }
+
+  export circuit transferFrom(fromHashKey: Field, to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
+    const senderPublicKey = ownPublicKey();
+    assert(tokenId != default<Uint<64>>, "Token ID cannot be empty.");
+    const senderHashKey = generateHashKey(senderPublicKey.bytes, getLocalSecret());
+    assert(isApprovedOrOwner(disclose(senderHashKey), disclose(tokenId)), "Not authorized to transfer.");
+    const toHashKey = generateHashKey(to.bytes, getSharedSecret());
+    clearApproval(disclose(fromHashKey), disclose(tokenId));
+    removeTokenFrom(disclose(fromHashKey), disclose(tokenId));
+    addTokenTo(disclose(toHashKey), disclose(tokenId));
+  }
+
+  export circuit mint(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
+    const senderPublicKey = ownPublicKey();
+    // Minting to self uses local secret; minting to others uses shared secret.
+    if(disclose(to == senderPublicKey)){
+      const senderHashKey = generateHashKey(senderPublicKey.bytes, getLocalSecret());
+      addTokenTo(disclose(senderHashKey), disclose(tokenId));
+    } else {
+      const toHashKey = generateHashKey(to.bytes, getSharedSecret());
+      addTokenTo(disclose(toHashKey), disclose(tokenId));
+    }
+  }
+
+  export circuit burn(ownerHashKey: Field, tokenId: Uint<64>): [] {
+    clearApproval(disclose(ownerHashKey), disclose(tokenId));
+    removeTokenFrom(disclose(ownerHashKey), disclose(tokenId));
+  }
+
+  export pure circuit generateHashKey(pK1: Bytes<32>, pK2: Bytes<32>): Field {
+    return transientHash<[Bytes<32>, Bytes<32>]>([pK1, pK2]);
+  }
+
+  circuit isApprovedOrOwner(spenderHashKey: Field, tokenId: Uint<64>): Boolean {
+    const ownerHashKey = ownerOf(tokenId);
+    if (spenderHashKey == ownerHashKey) {
+      return true;
+    }
+    if (tokenApprovals.member(tokenId) && spenderHashKey == tokenApprovals.lookup(tokenId)) {
+      return true;
+    }
+    return isApprovedForAll(ownerHashKey, spenderHashKey);
+  }
+
+  circuit addTokenTo(toHashKey: Field, tokenId: Uint<64>): [] {
+    assert(!tokenExists(tokenId), "Token already exists.");
+    assert(toHashKey != default<Field>, "Recipient cannot be empty.");
+    tokenOwner.insert(tokenId, toHashKey);
+    if (!ownedTokensCount.member(toHashKey)) {
+      ownedTokensCount.insert(toHashKey, default<Counter>);
+    }
+    ownedTokensCount.lookup(toHashKey).increment(1);
+  }
+
+  circuit removeTokenFrom(fromHashKey: Field, tokenId: Uint<64>): [] {
+    assert(fromHashKey != default<Field>, "Sender cannot be empty.");
+    assert(fromHashKey == ownerOf(tokenId), "Public key is not the owner.");
+    ownedTokensCount.lookup(fromHashKey).decrement(1);
+    tokenOwner.remove(tokenId);
+  }
+
+  circuit clearApproval(ownerHashKey: Field, tokenId: Uint<64>): [] {
+    assert(ownerHashKey == ownerOf(tokenId), "Public key is not the owner.");
+    if (ownerOf(tokenId) != default<Field>) {
+      tokenApprovals.remove(tokenId);
+    }
+  }
+}

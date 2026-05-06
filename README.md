@@ -1,72 +1,124 @@
-# Midnight Template Repository
+# NFT Contracts
 
-This GitHub repository should be used as a template when creating a new Midnight GitHub repository.
-The template is configured with default repository settings and a set of default files that are expected to exist in all Midnight GitHub repositories.
+This project is built on the [Midnight Network](https://midnight.network/).
 
-### LICENSE
+[![Generic badge](https://img.shields.io/badge/Compact%20Toolchain-0.30.0-1abc9c.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/TypeScript-5.8.3-blue.svg)](https://shields.io/)
 
-Apache 2.0.
+Example NFT smart contracts for the Midnight blockchain written in the Compact language (Minokawa). Includes two implementations:
 
-### README.md
+- **NFT** — standard ERC-721-style contract with public on-chain ownership
+- **NFT-ZK** — privacy-preserving NFT with hash-based ownership using zero-knowledge proofs
 
-Provides a brief description for users and developers who want to understand the purpose, setup, and usage of the repository.
+Both contracts follow a modular pattern: the core logic lives in a reusable module (`modules/Nft.compact`, `modules/NftZk.compact`) that you import into your own contract and wrap with whatever authorization you need.
 
-### SECURITY.md
+## Project Structure
 
-Provides a brief description of the Midnight Foundation's security policy and how to properly disclose security issues.
+```
+example-nft-contracts/
+├── contracts/
+│   ├── nft/                         # Public NFT contract
+│   │   ├── src/
+│   │   │   ├── nft.compact          # Example contract (admin-only mint/burn)
+│   │   │   ├── witnesses.ts         # TypeScript witness definitions
+│   │   │   ├── modules/Nft.compact  # Reusable NFT module
+│   │   │   └── test/                # Unit tests and simulator
+│   │   ├── CONTRACT.md
+│   │   └── README.md
+│   └── nft-zk/                      # Privacy-preserving NFT contract
+│       ├── src/
+│       │   ├── nft-zk.compact       # Example contract (admin-only mint/burn)
+│       │   ├── witnesses.ts         # TypeScript witness definitions
+│       │   ├── modules/NftZk.compact # Reusable NFT-ZK module
+│       │   └── test/                # Unit tests and simulator
+│       ├── CONTRACT.md
+│       └── README.md
+```
 
-### CONTRIBUTING.md
+## Prerequisites
 
-Provides guidelines for how people can contribute to the Midnight project.
+- [Node.js v22+](https://nodejs.org/)
+- Yarn
+- Compact devtools installed and on `PATH`
 
-### CODEOWNERS
+```bash
+# Install the Compact devtools
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/midnightntwrk/compact/releases/latest/download/compact-installer.sh | sh
 
-Defines repository ownership rules.
+source $HOME/.local/bin/env
 
-### ISSUE_TEMPLATE
+# Install the toolchain version used by this project
+compact update 0.30.0
+```
 
-Provides templates for reporting various types of issues, such as: bug report, documentation improvement and feature request.
+## Quick Start
 
-### PULL_REQUEST_TEMPLATE
+```bash
+# Install dependencies
+yarn install
 
-Provides a template for a pull request.
+# Compile contracts and run tests
+yarn test:compile
+```
 
-### CLA Assistant
+Running `yarn compact` and `yarn test` separately is also supported.
 
-The Midnight Foundation appreciates contributions, and like many other open source projects asks contributors to sign a contributor
-License Agreement before accepting contributions. We use CLA assistant (https://github.com/cla-assistant/cla-assistant) to streamline the CLA
-signing process, enabling contributors to sign our CLAs directly within a GitHub pull request.
+## Using as a Module
 
-### Dependabot
+Add this repository as a dependency:
 
-The Midnight Foundation uses GitHub Dependabot feature to keep our projects dependencies up-to-date and address potential security vulnerabilities.
+```json
+{
+  "dependencies": {
+    "@midnight-ntwrk/example-nft-contracts": "github:midnightntwrk/example-nft-contracts"
+  }
+}
+```
 
-### Checkmarx
+Then import the module in your Compact contract:
 
-The Midnight Foundation uses Checkmarx for application security (AppSec) to identify and fix security vulnerabilities.
-All repositories are scanned with Checkmarx's suite of tools including: Static Application Security Testing (SAST), Infrastructure as Code (IaC), Software Composition Analysis (SCA), API Security, Container Security and Supply Chain Scans (SCS).
+```compact
+pragma language_version >= 0.22.0;
 
-### Unito
+import CompactStandardLibrary;
+import "@midnight-ntwrk/example-nft-contracts/contracts/nft/src/modules/Nft";
 
-Facilitates two-way data synchronization, automated workflows and streamline processes between: Jira, GitHub issues and Github project Kanban board.
+// Export the circuits you want to expose
+export {
+  balanceOf,
+  ownerOf,
+  approve,
+  getApproved,
+  setApprovalForAll,
+  isApprovedForAll,
+  transfer,
+  transferFrom
+};
 
-# TODO - New Repo Owner
+export ledger contractAdmin: ZswapCoinPublicKey;
 
-### Software Package Data Exchange (SPDX)
-Include the following Software Package Data Exchange (SPDX) short-form identifier in a comment at the top headers of each source code file.
+constructor() {
+  contractAdmin = ownPublicKey();
+}
 
+// Wrap mint/burn with your own authorization
+export circuit mintAdmin(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
+  assert(ownPublicKey() == contractAdmin, "Not authorized.");
+  mint(to, tokenId);
+}
+```
 
- <I>// This file is part of <B>REPLACE WITH REPO-NAME</B>.<BR>
- // Copyright (C) Midnight Foundation<BR>
- // SPDX-License-Identifier: Apache-2.0<BR>
- // Licensed under the Apache License, Version 2.0 (the "License");<BR>
- // You may not use this file except in compliance with the License.<BR>
- // You may obtain a copy of the License at<BR>
- //<BR>
- //	https://www.apache.org/licenses/LICENSE-2.0<BR>
- //<BR>
- // Unless required by applicable law or agreed to in writing, software<BR>
- // distributed under the License is distributed on an "AS IS" BASIS,<BR>
- // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.<BR>
- // See the License for the specific language governing permissions and<BR>
- // limitations under the License.</I>
+For the privacy-preserving version, import `NftZk` instead:
+
+```compact
+import "@midnight-ntwrk/example-nft-contracts/contracts/nft-zk/src/modules/NftZk";
+```
+
+The Compact compiler resolves package imports by searching directories in `COMPACT_PATH`. Make sure your compile script includes `node_modules`:
+
+```bash
+COMPACT_PATH=$COMPACT_PATH:./node_modules compact compile mycontract.compact output/dir
+```
+
+## License
+
+Apache-2.0 — see [LICENSE](LICENSE).
