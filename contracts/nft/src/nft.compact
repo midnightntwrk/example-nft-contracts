@@ -32,23 +32,42 @@ export {
   transferFrom
 };
 
-export ledger contractAdmin: ZswapCoinPublicKey;
+// Admin uses a keypair pattern. The deployer's DApp generates the private key,
+// stores it in private state, and the contract derives the matching public key
+// to store on the ledger. The deployer's wallet identity is never recorded.
+struct AdminSecretKey { bytes: Bytes<32>; }
+struct AdminPublicKey { bytes: Bytes<32>; }
+
+export ledger contractAdmin: AdminPublicKey;
+
+witness localSecretKey(): AdminSecretKey;
 
 constructor() {
-  contractAdmin = ownPublicKey();
+  contractAdmin = disclose(deriveAdminPublicKey(localSecretKey()));
 }
 
-// Example: Only the contract admin can mint tokens.
+export circuit deriveAdminPublicKey(sk: AdminSecretKey): AdminPublicKey {
+  return AdminPublicKey {
+    bytes: persistentHash<Vector<2, Bytes<32>>>([pad(32, "nft:admin:pk:v1"), sk.bytes])
+  };
+}
+
 export circuit mintAdmin(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
-  const senderPublicKey = ownPublicKey();
-  assert(senderPublicKey == contractAdmin, "Not authorized to mint.");
+  assert(contractAdmin == deriveAdminPublicKey(localSecretKey()), "Not authorized to mint.");
   mint(to, tokenId);
 }
 
-// Example: Only the contract admin can burn tokens.
 export circuit burnAdmin(tokenId: Uint<64>): [] {
-  const senderPublicKey = ownPublicKey();
-  assert(senderPublicKey == contractAdmin, "Not authorized to burn.");
+  assert(contractAdmin == deriveAdminPublicKey(localSecretKey()), "Not authorized to burn.");
   const tokenOwner = ownerOf(tokenId);
   burn(tokenOwner, tokenId);
+}
+
+// Replace the admin key. The current admin proves authority, then the ledger
+// is updated to the new public key. The new admin generates their private key
+// locally and only shares the derived public key, so private keys never leave
+// the device that generated them.
+export circuit rotateAdmin(newAdmin: AdminPublicKey): [] {
+  assert(contractAdmin == deriveAdminPublicKey(localSecretKey()), "Not authorized to rotate admin.");
+  contractAdmin = disclose(newAdmin);
 }

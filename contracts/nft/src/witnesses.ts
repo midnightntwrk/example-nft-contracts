@@ -13,6 +13,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export type NftPrivateState = Record<string, never>;
+import { Ledger } from "../../managed/nft/contract/index.js";
+import { WitnessContext } from "@midnight-ntwrk/compact-runtime";
 
-export const witnesses = {};
+// Private state holds the deployer's admin private key as raw bytes. The
+// Compact contract receives it as an AdminSecretKey struct ({ bytes }).
+export type NftPrivateState = {
+  readonly adminSecretKey: Uint8Array;
+};
+
+export const createNftPrivateState = (adminSecretKey: Uint8Array): NftPrivateState => ({
+  adminSecretKey
+});
+
+export const witnesses = {
+  localSecretKey: ({
+    privateState
+  }: WitnessContext<Ledger, NftPrivateState>): [NftPrivateState, { bytes: Uint8Array }] => [
+    privateState,
+    { bytes: privateState.adminSecretKey }
+  ]
+};

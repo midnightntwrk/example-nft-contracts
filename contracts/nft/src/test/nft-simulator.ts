@@ -25,7 +25,7 @@ import {
   type Ledger,
   ledger
 } from "../../../managed/nft/contract/index.js";
-import { type NftPrivateState, witnesses } from "../witnesses.js";
+import { type NftPrivateState, createNftPrivateState, witnesses } from "../witnesses.js";
 import { toHex, fromHex, isHex } from "@midnight-ntwrk/midnight-js-utils";
 import { TextEncoder } from "util";
 
@@ -35,12 +35,14 @@ export class NftSimulator {
 
   constructor() {
     this.contract = new Contract<NftPrivateState>(witnesses);
+    const adminSecretKey = new Uint8Array(32);
+    new TextEncoder().encodeInto("admin_secret_key", adminSecretKey);
     const {
       currentPrivateState,
       currentContractState,
       currentZswapLocalState
     } = this.contract.initialState(
-      createConstructorContext({}, this.createPublicKey("Alice"))
+      createConstructorContext(createNftPrivateState(adminSecretKey), this.createPublicKey("Alice"))
     );
     this.circuitContext = createCircuitContext(
       sampleContractAddress(),

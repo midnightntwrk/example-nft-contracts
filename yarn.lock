@@ -154,16 +154,16 @@
   resolved "https://registry.yarnpkg.com/@jridgewell/sourcemap-codec/-/sourcemap-codec-1.5.5.tgz#6912b00d2c631c0d15ce1a7ab57cd657f2a8f8ba"
   integrity sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og==
 
-"@midnight-ntwrk/compact-runtime@^0.15.0":
-  version "0.15.0"
-  resolved "https://registry.yarnpkg.com/@midnight-ntwrk/compact-runtime/-/compact-runtime-0.15.0.tgz#399021d6e35d3cf25e4bc4ba56f19d5396bbe167"
-  integrity sha512-6+odrxb83ZZwF29SqNBBgaOR3hf5ej4KZVGibDwdXta9+uiv6qYW0fMrsKP9S+c2AqvY+vEb5NEFFI54lA7G5A==
+"@midnight-ntwrk/compact-runtime@^0.16.0":
+  version "0.16.0"
+  resolved "https://registry.yarnpkg.com/@midnight-ntwrk/compact-runtime/-/compact-runtime-0.16.0.tgz#4a2d38a4237b0abd6d833c0ee94baa6318323a79"
+  integrity sha512-UR8+MI5zol+gkne17ZZru8xmZNf11xMgQJkiLT9KWsF+QD8Wuz1WONaqQLL0RAZ2aN2XlRsBFd0ViKDVh8prFw==
   dependencies:
     "@midnight-ntwrk/onchain-runtime-v3" "^3.0.0"
     "@types/object-inspect" "^1.8.1"
     object-inspect "^1.12.3"
 
-"@midnight-ntwrk/ledger-v8@^8.0.2":
+"@midnight-ntwrk/ledger-v8@^8.0.2", "@midnight-ntwrk/ledger-v8@^8.0.3":
   version "8.0.3"
   resolved "https://registry.yarnpkg.com/@midnight-ntwrk/ledger-v8/-/ledger-v8-8.0.3.tgz#47e343bc08f4c94162a2f12322e0e0a958743613"
   integrity sha512-2BLMfHnZyKAHZxaGWjlenhity096lZ9jvyp1qrQH5J3ogpy7H5ostCW8kRj70dGv5T55qDAC5nJ+wnU/8CGUcQ==
