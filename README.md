@@ -94,15 +94,26 @@ export {
   transferFrom
 };
 
-export ledger contractAdmin: ZswapCoinPublicKey;
+struct AdminSecretKey { bytes: Bytes<32>; }
+struct AdminPublicKey { bytes: Bytes<32>; }
+
+export ledger contractAdmin: AdminPublicKey;
+
+witness localSecretKey(): AdminSecretKey;
 
 constructor() {
-  contractAdmin = ownPublicKey();
+  contractAdmin = disclose(deriveAdminPublicKey(localSecretKey()));
+}
+
+export circuit deriveAdminPublicKey(sk: AdminSecretKey): AdminPublicKey {
+  return AdminPublicKey {
+    bytes: persistentHash<Vector<2, Bytes<32>>>([pad(32, "nft:admin:pk:v1"), sk.bytes])
+  };
 }
 
 // Wrap mint/burn with your own authorization
 export circuit mintAdmin(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
-  assert(ownPublicKey() == contractAdmin, "Not authorized.");
+  assert(contractAdmin == deriveAdminPublicKey(localSecretKey()), "Not authorized.");
   mint(to, tokenId);
 }
 ```

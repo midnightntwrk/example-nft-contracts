@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0]
+
+### Changed
+- Replaced the `ownPublicKey()` admin pattern in both example wrapper contracts with a witness-derived public key. The deployer's DApp generates an admin private key and stores it in private state; the contract stores only the derived public key on the ledger, so the deployer's wallet identity is never written on-chain.
+- Added `rotateAdmin` to both wrapper contracts so admin authority can be handed off without ever transmitting a private key.
+- Bumped `compact-runtime` to `^0.16.0` per the latest [compatibility matrix](https://docs.midnight.network/relnotes/support-matrix).
+
 ## [0.1.0]
 
 ### Added

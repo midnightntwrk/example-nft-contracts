@@ -161,17 +161,17 @@ export {
 
 ### Usage Example (`nft.compact`)
 
-This shows ONE way to use the module - with admin-only controls:
+This shows ONE way to use the module - with admin-only controls. The deployer's DApp generates the admin private key and stores it in private state. The contract derives the matching public key and stores it on the ledger, so the deployer's wallet identity is never recorded on-chain.
 
 ```compact
-pragma language_version 0.16;
+pragma language_version >= 0.22.0;
 
 import CompactStandardLibrary;
-import "midnight-contracts/contracts/tokens/nft/src/modules/Nft";
+import "./modules/Nft";
 
 // Export selected circuits from the Nft module.
 // We aren't exporting 'burn' or 'mint' because they have no authorization checks.
-export { 
+export {
   balanceOf,
   ownerOf,
   approve,
@@ -182,30 +182,41 @@ export {
   transferFrom
 };
 
-export ledger contractAdmin: ZswapCoinPublicKey;
+struct AdminSecretKey { bytes: Bytes<32>; }
+struct AdminPublicKey { bytes: Bytes<32>; }
 
-// Set the public key of the contract admin.
+export ledger contractAdmin: AdminPublicKey;
+
+witness localSecretKey(): AdminSecretKey;
+
 constructor() {
-  contractAdmin = ownPublicKey();
+  contractAdmin = disclose(deriveAdminPublicKey(localSecretKey()));
+}
+
+export circuit deriveAdminPublicKey(sk: AdminSecretKey): AdminPublicKey {
+  return AdminPublicKey {
+    bytes: persistentHash<Vector<2, Bytes<32>>>([pad(32, "nft:admin:pk:v1"), sk.bytes])
+  };
 }
 
 // Example: Only Admin can mint tokens.
 export circuit mintAdmin(to: ZswapCoinPublicKey, tokenId: Uint<64>): [] {
-  const senderPublicKey = ownPublicKey();
-  assert(senderPublicKey == contractAdmin, "Not authorized to mint.");
-
-  // Use the imported NFT functionality
+  assert(contractAdmin == deriveAdminPublicKey(localSecretKey()), "Not authorized to mint.");
   mint(to, tokenId);
 }
 
 // Example: Only admin can burn tokens.
 export circuit burnAdmin(tokenId: Uint<64>): [] {
-  const senderPublicKey = ownPublicKey();
-  assert(senderPublicKey == contractAdmin, "Not authorized to burn.");
-
-  // Get the owner of the token and then burn it
+  assert(contractAdmin == deriveAdminPublicKey(localSecretKey()), "Not authorized to burn.");
   const tokenOwner = ownerOf(tokenId);
   burn(tokenOwner, tokenId);
+}
+
+// Example: Rotate the admin key. Share only the derived public key with the
+// current admin so private keys never leave the device that generated them.
+export circuit rotateAdmin(newAdmin: AdminPublicKey): [] {
+  assert(contractAdmin == deriveAdminPublicKey(localSecretKey()), "Not authorized to rotate admin.");
+  contractAdmin = disclose(newAdmin);
 }
 ```
 

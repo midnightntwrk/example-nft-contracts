@@ -48,7 +48,8 @@ export class NftZkSimulator {
       createConstructorContext(
         createNftZkPrivateState(
           this.stringToBytes("my_local_secret").bytes,
-          this.stringToBytes("my_shared_secret").bytes
+          this.stringToBytes("my_shared_secret").bytes,
+          this.stringToBytes("my_admin_secret_key").bytes
         ),
         this.createPublicKey("Alice")
       )
