@@ -20,7 +20,10 @@ import {
 } from "../../managed/nft-zk/contract/index.js";
 import { WitnessContext } from "@midnight-ntwrk/compact-runtime";
 
-export type Contract<T, W extends Witnesses<T> = Witnesses<T>> = ContractType<T, W>;
+export type Contract<T, W extends Witnesses<T> = Witnesses<T>> = ContractType<
+  T,
+  W
+>;
 
 // Private state for the NFT-ZK contract.
 //
@@ -47,7 +50,10 @@ export function createNftZkPrivateState(
 export const witnesses = {
   getLocalSecret: ({
     privateState
-  }: WitnessContext<Ledger, NftZkPrivateState>): [NftZkPrivateState, Uint8Array] => {
+  }: WitnessContext<Ledger, NftZkPrivateState>): [
+    NftZkPrivateState,
+    Uint8Array
+  ] => {
     if (privateState.local_secret) {
       return [privateState, privateState.local_secret];
     }
@@ -55,7 +61,10 @@ export const witnesses = {
   },
   getSharedSecret: ({
     privateState
-  }: WitnessContext<Ledger, NftZkPrivateState>): [NftZkPrivateState, Uint8Array] => {
+  }: WitnessContext<Ledger, NftZkPrivateState>): [
+    NftZkPrivateState,
+    Uint8Array
+  ] => {
     if (privateState.shared_secret) {
       return [privateState, privateState.shared_secret];
     }
@@ -63,7 +72,10 @@ export const witnesses = {
   },
   getAdminSecret: ({
     privateState
-  }: WitnessContext<Ledger, NftZkPrivateState>): [NftZkPrivateState, { bytes: Uint8Array }] => {
+  }: WitnessContext<Ledger, NftZkPrivateState>): [
+    NftZkPrivateState,
+    { bytes: Uint8Array }
+  ] => {
     if (privateState.adminSecretKey) {
       return [privateState, { bytes: privateState.adminSecretKey }];
     }

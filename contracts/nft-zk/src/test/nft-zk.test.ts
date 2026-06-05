@@ -48,9 +48,13 @@ describe("NFT-ZK Contract Tests", () => {
     const aliceOwnerHashKey = simulator.generateLocalUserHashKey(alice);
     const bobOperatorHashKey = simulator.generateSharedUserHashKey(bob);
     simulator.setApprovalForAll(bob, true);
-    expect(simulator.isApprovedForAll(aliceOwnerHashKey, bobOperatorHashKey)).toBe(true);
+    expect(
+      simulator.isApprovedForAll(aliceOwnerHashKey, bobOperatorHashKey)
+    ).toBe(true);
     simulator.setApprovalForAll(bob, false);
-    expect(simulator.isApprovedForAll(aliceOwnerHashKey, bobOperatorHashKey)).toBe(false);
+    expect(
+      simulator.isApprovedForAll(aliceOwnerHashKey, bobOperatorHashKey)
+    ).toBe(false);
   });
 
   it("should transfer tokens using explicit hash keys", () => {
@@ -79,13 +83,28 @@ describe("NFT-ZK Contract Tests", () => {
     const simulator = new NftZkSimulator();
     const alice = simulator.createPublicKey("Alice");
     const bob = simulator.createPublicKey("Bob");
-    const aliceHash1 = simulator.generateHashKey(simulator.publicKeyToBytes(alice).bytes, simulator.getLocalSecret());
-    const aliceHash2 = simulator.generateHashKey(simulator.publicKeyToBytes(alice).bytes, simulator.getLocalSecret());
+    const aliceHash1 = simulator.generateHashKey(
+      simulator.publicKeyToBytes(alice).bytes,
+      simulator.getLocalSecret()
+    );
+    const aliceHash2 = simulator.generateHashKey(
+      simulator.publicKeyToBytes(alice).bytes,
+      simulator.getLocalSecret()
+    );
     expect(aliceHash1).toBe(aliceHash2);
-    const bobHash1 = simulator.generateHashKey(simulator.publicKeyToBytes(bob).bytes, simulator.getSharedSecret());
-    const bobHash2 = simulator.generateHashKey(simulator.publicKeyToBytes(bob).bytes, simulator.getSharedSecret());
+    const bobHash1 = simulator.generateHashKey(
+      simulator.publicKeyToBytes(bob).bytes,
+      simulator.getSharedSecret()
+    );
+    const bobHash2 = simulator.generateHashKey(
+      simulator.publicKeyToBytes(bob).bytes,
+      simulator.getSharedSecret()
+    );
     expect(bobHash1).toBe(bobHash2);
-    const aliceHashWithShared = simulator.generateHashKey(simulator.publicKeyToBytes(alice).bytes, simulator.getSharedSecret());
+    const aliceHashWithShared = simulator.generateHashKey(
+      simulator.publicKeyToBytes(alice).bytes,
+      simulator.getSharedSecret()
+    );
     expect(aliceHash1).not.toBe(aliceHashWithShared);
   });
 
@@ -97,11 +116,16 @@ describe("NFT-ZK Contract Tests", () => {
     simulator.mintAdmin(alice, 1n);
     const aliceOwnerHashKey = simulator.generateLocalUserHashKey(alice);
     const bobOperatorHashKey = simulator.generateSharedUserHashKey(bob);
-    const charlieTransferredHashKey = simulator.generateSharedUserHashKey(charlie);
+    const charlieTransferredHashKey =
+      simulator.generateSharedUserHashKey(charlie);
     simulator.setApprovalForAll(bob, true);
     simulator.approve(charlie, 1n);
-    expect(simulator.isApprovedForAll(aliceOwnerHashKey, bobOperatorHashKey)).toBe(true);
-    expect(simulator.getApproved(1n)).toBe(simulator.generateSharedUserHashKey(charlie));
+    expect(
+      simulator.isApprovedForAll(aliceOwnerHashKey, bobOperatorHashKey)
+    ).toBe(true);
+    expect(simulator.getApproved(1n)).toBe(
+      simulator.generateSharedUserHashKey(charlie)
+    );
     const aliceCurrentOwnerHash = simulator.ownerOf(1n);
     simulator.transferFrom(aliceCurrentOwnerHash, charlie, 1n);
     expect(simulator.ownerOf(1n)).toBe(charlieTransferredHashKey);
@@ -145,7 +169,9 @@ describe("NFT-ZK Contract Tests", () => {
     const charlie = simulator.createPublicKey("Charlie");
     simulator.mintAdmin(alice, 1n);
     simulator.approve(bob, 1n);
-    expect(simulator.getApproved(1n)).toBe(simulator.generateSharedUserHashKey(bob));
+    expect(simulator.getApproved(1n)).toBe(
+      simulator.generateSharedUserHashKey(bob)
+    );
     const aliceOwnerHashKey = simulator.ownerOf(1n);
     simulator.transferFrom(aliceOwnerHashKey, charlie, 1n);
     expect(() => simulator.getApproved(1n)).toThrow();
@@ -157,7 +183,9 @@ describe("NFT-ZK Contract Tests", () => {
     const bob = simulator.createPublicKey("Bob");
     simulator.mintAdmin(alice, 1n);
     simulator.approve(bob, 1n);
-    expect(simulator.getApproved(1n)).toBe(simulator.generateSharedUserHashKey(bob));
+    expect(simulator.getApproved(1n)).toBe(
+      simulator.generateSharedUserHashKey(bob)
+    );
     simulator.burnAdmin(1n);
     expect(() => simulator.ownerOf(1n)).toThrow();
     expect(() => simulator.getApproved(1n)).toThrow();
@@ -207,12 +235,20 @@ describe("NFT-ZK Contract Tests", () => {
     const aliceOwnerHashKey = simulator.generateLocalUserHashKey(alice);
     const bobOperatorHashKey = simulator.generateSharedUserHashKey(bob);
     const charlieOperatorHashKey = simulator.generateSharedUserHashKey(charlie);
-    expect(simulator.isApprovedForAll(aliceOwnerHashKey, bobOperatorHashKey)).toBe(false);
+    expect(
+      simulator.isApprovedForAll(aliceOwnerHashKey, bobOperatorHashKey)
+    ).toBe(false);
     simulator.setApprovalForAll(bob, true);
-    expect(simulator.isApprovedForAll(aliceOwnerHashKey, bobOperatorHashKey)).toBe(true);
-    expect(simulator.isApprovedForAll(aliceOwnerHashKey, charlieOperatorHashKey)).toBe(false);
+    expect(
+      simulator.isApprovedForAll(aliceOwnerHashKey, bobOperatorHashKey)
+    ).toBe(true);
+    expect(
+      simulator.isApprovedForAll(aliceOwnerHashKey, charlieOperatorHashKey)
+    ).toBe(false);
     simulator.setApprovalForAll(bob, false);
-    expect(simulator.isApprovedForAll(aliceOwnerHashKey, bobOperatorHashKey)).toBe(false);
+    expect(
+      simulator.isApprovedForAll(aliceOwnerHashKey, bobOperatorHashKey)
+    ).toBe(false);
   });
 
   it("should handle large token IDs and edge values", () => {
@@ -284,11 +320,17 @@ describe("NFT-ZK Contract Tests", () => {
     simulator.approve(bob, 1n);
     expect(simulator.getApproved(1n)).toBe(bobOperatorHashKey);
     simulator.setApprovalForAll(charlie, true);
-    expect(simulator.isApprovedForAll(aliceOwnerHashKey, charlieOperatorHashKey)).toBe(true);
+    expect(
+      simulator.isApprovedForAll(aliceOwnerHashKey, charlieOperatorHashKey)
+    ).toBe(true);
     simulator.setApprovalForAll(charlie, false);
-    expect(simulator.isApprovedForAll(aliceOwnerHashKey, charlieOperatorHashKey)).toBe(false);
+    expect(
+      simulator.isApprovedForAll(aliceOwnerHashKey, charlieOperatorHashKey)
+    ).toBe(false);
     simulator.setApprovalForAll(charlie, true);
-    expect(simulator.isApprovedForAll(aliceOwnerHashKey, charlieOperatorHashKey)).toBe(true);
+    expect(
+      simulator.isApprovedForAll(aliceOwnerHashKey, charlieOperatorHashKey)
+    ).toBe(true);
   });
 
   it("should test transfer circuit functionality", () => {
