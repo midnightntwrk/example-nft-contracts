@@ -25,7 +25,11 @@ import {
   type Ledger,
   ledger
 } from "../../../managed/nft/contract/index.js";
-import { type NftPrivateState, createNftPrivateState, witnesses } from "../witnesses.js";
+import {
+  type NftPrivateState,
+  createNftPrivateState,
+  witnesses
+} from "../witnesses.js";
 import { toHex, fromHex, isHex } from "@midnight-ntwrk/midnight-js-utils";
 import { TextEncoder } from "util";
 
@@ -42,7 +46,10 @@ export class NftSimulator {
       currentContractState,
       currentZswapLocalState
     } = this.contract.initialState(
-      createConstructorContext(createNftPrivateState(adminSecretKey), this.createPublicKey("Alice"))
+      createConstructorContext(
+        createNftPrivateState(adminSecretKey),
+        this.createPublicKey("Alice")
+      )
     );
     this.circuitContext = createCircuitContext(
       sampleContractAddress(),
@@ -57,50 +64,95 @@ export class NftSimulator {
   }
 
   public balanceOf(owner: CoinPublicKey): bigint {
-    return this.contract.circuits.balanceOf(this.circuitContext, this.publicKeyToBytes(owner)).result;
+    return this.contract.circuits.balanceOf(
+      this.circuitContext,
+      this.publicKeyToBytes(owner)
+    ).result;
   }
 
   public ownerOf(tokenId: bigint): CoinPublicKey {
-    return this.bytesToPublicKey(this.contract.circuits.ownerOf(this.circuitContext, tokenId).result);
+    return this.bytesToPublicKey(
+      this.contract.circuits.ownerOf(this.circuitContext, tokenId).result
+    );
   }
 
   public approve(to: CoinPublicKey, tokenId: bigint): void {
-    this.circuitContext = this.contract.impureCircuits.approve(this.circuitContext, this.publicKeyToBytes(to), tokenId).context;
+    this.circuitContext = this.contract.impureCircuits.approve(
+      this.circuitContext,
+      this.publicKeyToBytes(to),
+      tokenId
+    ).context;
   }
 
   public getApproved(tokenId: bigint): CoinPublicKey {
-    return this.bytesToPublicKey(this.contract.circuits.getApproved(this.circuitContext, tokenId).result);
+    return this.bytesToPublicKey(
+      this.contract.circuits.getApproved(this.circuitContext, tokenId).result
+    );
   }
 
   public setApprovalForAll(operator: CoinPublicKey, approved: boolean): void {
-    this.circuitContext = this.contract.impureCircuits.setApprovalForAll(this.circuitContext, this.publicKeyToBytes(operator), approved).context;
+    this.circuitContext = this.contract.impureCircuits.setApprovalForAll(
+      this.circuitContext,
+      this.publicKeyToBytes(operator),
+      approved
+    ).context;
   }
 
-  public isApprovedForAll(owner: CoinPublicKey, operator: CoinPublicKey): boolean {
-    return this.contract.circuits.isApprovedForAll(this.circuitContext, this.publicKeyToBytes(owner), this.publicKeyToBytes(operator)).result;
+  public isApprovedForAll(
+    owner: CoinPublicKey,
+    operator: CoinPublicKey
+  ): boolean {
+    return this.contract.circuits.isApprovedForAll(
+      this.circuitContext,
+      this.publicKeyToBytes(owner),
+      this.publicKeyToBytes(operator)
+    ).result;
   }
 
   public transfer(to: CoinPublicKey, tokenId: bigint): void {
-    this.circuitContext = this.contract.impureCircuits.transfer(this.circuitContext, this.publicKeyToBytes(to), tokenId).context;
+    this.circuitContext = this.contract.impureCircuits.transfer(
+      this.circuitContext,
+      this.publicKeyToBytes(to),
+      tokenId
+    ).context;
   }
 
-  public transferFrom(from: CoinPublicKey, to: CoinPublicKey, tokenId: bigint): void {
-    this.circuitContext = this.contract.impureCircuits.transferFrom(this.circuitContext, this.publicKeyToBytes(from), this.publicKeyToBytes(to), tokenId).context;
+  public transferFrom(
+    from: CoinPublicKey,
+    to: CoinPublicKey,
+    tokenId: bigint
+  ): void {
+    this.circuitContext = this.contract.impureCircuits.transferFrom(
+      this.circuitContext,
+      this.publicKeyToBytes(from),
+      this.publicKeyToBytes(to),
+      tokenId
+    ).context;
   }
 
   public mintAdmin(to: CoinPublicKey, tokenId: bigint): void {
-    this.circuitContext = this.contract.impureCircuits.mintAdmin(this.circuitContext, this.publicKeyToBytes(to), tokenId).context;
+    this.circuitContext = this.contract.impureCircuits.mintAdmin(
+      this.circuitContext,
+      this.publicKeyToBytes(to),
+      tokenId
+    ).context;
   }
 
   public burnAdmin(tokenId: bigint): void {
-    this.circuitContext = this.contract.impureCircuits.burnAdmin(this.circuitContext, tokenId).context;
+    this.circuitContext = this.contract.impureCircuits.burnAdmin(
+      this.circuitContext,
+      tokenId
+    ).context;
   }
 
   public createPublicKey(userName: string): CoinPublicKey {
     const encoded = new TextEncoder().encode(userName);
     const hexChars: string[] = [];
     for (let i = 0; i < 32; i++) {
-      const byte = i < encoded.length ? encoded[i] : (userName.charCodeAt(i % userName.length) + i) % 256;
+      const byte =
+        i < encoded.length
+          ? encoded[i]
+          : (userName.charCodeAt(i % userName.length) + i) % 256;
       hexChars.push(byte.toString(16).padStart(2, "0"));
     }
     return hexChars.join("") as CoinPublicKey;

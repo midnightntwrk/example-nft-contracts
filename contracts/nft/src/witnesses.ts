@@ -22,15 +22,17 @@ export type NftPrivateState = {
   readonly adminSecretKey: Uint8Array;
 };
 
-export const createNftPrivateState = (adminSecretKey: Uint8Array): NftPrivateState => ({
+export const createNftPrivateState = (
+  adminSecretKey: Uint8Array
+): NftPrivateState => ({
   adminSecretKey
 });
 
 export const witnesses = {
   localSecretKey: ({
     privateState
-  }: WitnessContext<Ledger, NftPrivateState>): [NftPrivateState, { bytes: Uint8Array }] => [
-    privateState,
-    { bytes: privateState.adminSecretKey }
-  ]
+  }: WitnessContext<Ledger, NftPrivateState>): [
+    NftPrivateState,
+    { bytes: Uint8Array }
+  ] => [privateState, { bytes: privateState.adminSecretKey }]
 };

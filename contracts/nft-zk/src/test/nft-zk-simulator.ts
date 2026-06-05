@@ -75,7 +75,10 @@ export class NftZkSimulator {
   }
 
   public balanceOf(owner: CoinPublicKey): bigint {
-    return this.contract.circuits.balanceOf(this.circuitContext, this.publicKeyToBytes(owner)).result;
+    return this.contract.circuits.balanceOf(
+      this.circuitContext,
+      this.publicKeyToBytes(owner)
+    ).result;
   }
 
   public ownerOf(tokenId: bigint): bigint {
@@ -83,42 +86,81 @@ export class NftZkSimulator {
   }
 
   public approve(to: CoinPublicKey, tokenId: bigint): void {
-    this.circuitContext = this.contract.impureCircuits.approve(this.circuitContext, this.publicKeyToBytes(to), tokenId).context;
+    this.circuitContext = this.contract.impureCircuits.approve(
+      this.circuitContext,
+      this.publicKeyToBytes(to),
+      tokenId
+    ).context;
   }
 
   public getApproved(tokenId: bigint): bigint {
-    return this.contract.circuits.getApproved(this.circuitContext, tokenId).result;
+    return this.contract.circuits.getApproved(this.circuitContext, tokenId)
+      .result;
   }
 
   public setApprovalForAll(operator: CoinPublicKey, approved: boolean): void {
-    this.circuitContext = this.contract.impureCircuits.setApprovalForAll(this.circuitContext, this.publicKeyToBytes(operator), approved).context;
+    this.circuitContext = this.contract.impureCircuits.setApprovalForAll(
+      this.circuitContext,
+      this.publicKeyToBytes(operator),
+      approved
+    ).context;
   }
 
-  public isApprovedForAll(ownerHashKey: bigint, operatorHashKey: bigint): boolean {
-    return this.contract.circuits.isApprovedForAll(this.circuitContext, ownerHashKey, operatorHashKey).result;
+  public isApprovedForAll(
+    ownerHashKey: bigint,
+    operatorHashKey: bigint
+  ): boolean {
+    return this.contract.circuits.isApprovedForAll(
+      this.circuitContext,
+      ownerHashKey,
+      operatorHashKey
+    ).result;
   }
 
   public transfer(to: CoinPublicKey, tokenId: bigint): void {
-    this.circuitContext = this.contract.impureCircuits.transfer(this.circuitContext, this.publicKeyToBytes(to), tokenId).context;
+    this.circuitContext = this.contract.impureCircuits.transfer(
+      this.circuitContext,
+      this.publicKeyToBytes(to),
+      tokenId
+    ).context;
   }
 
-  public transferFrom(fromHashKey: bigint, to: CoinPublicKey, tokenId: bigint): void {
-    this.circuitContext = this.contract.impureCircuits.transferFrom(this.circuitContext, fromHashKey, this.publicKeyToBytes(to), tokenId).context;
+  public transferFrom(
+    fromHashKey: bigint,
+    to: CoinPublicKey,
+    tokenId: bigint
+  ): void {
+    this.circuitContext = this.contract.impureCircuits.transferFrom(
+      this.circuitContext,
+      fromHashKey,
+      this.publicKeyToBytes(to),
+      tokenId
+    ).context;
   }
 
   public mintAdmin(to: CoinPublicKey, tokenId: bigint): void {
-    this.circuitContext = this.contract.impureCircuits.mintAdmin(this.circuitContext, this.publicKeyToBytes(to), tokenId).context;
+    this.circuitContext = this.contract.impureCircuits.mintAdmin(
+      this.circuitContext,
+      this.publicKeyToBytes(to),
+      tokenId
+    ).context;
   }
 
   public burnAdmin(tokenId: bigint): void {
-    this.circuitContext = this.contract.impureCircuits.burnAdmin(this.circuitContext, tokenId).context;
+    this.circuitContext = this.contract.impureCircuits.burnAdmin(
+      this.circuitContext,
+      tokenId
+    ).context;
   }
 
   public createPublicKey(userName: string): CoinPublicKey {
     const encoded = new TextEncoder().encode(userName);
     const hexChars: string[] = [];
     for (let i = 0; i < 32; i++) {
-      const byte = i < encoded.length ? encoded[i] : (userName.charCodeAt(i % userName.length) + i) % 256;
+      const byte =
+        i < encoded.length
+          ? encoded[i]
+          : (userName.charCodeAt(i % userName.length) + i) % 256;
       hexChars.push(byte.toString(16).padStart(2, "0"));
     }
     return hexChars.join("") as CoinPublicKey;
@@ -146,10 +188,16 @@ export class NftZkSimulator {
   }
 
   public generateLocalUserHashKey(publicKey: CoinPublicKey): bigint {
-    return this.generateHashKey(this.publicKeyToBytes(publicKey).bytes, this.getLocalSecret());
+    return this.generateHashKey(
+      this.publicKeyToBytes(publicKey).bytes,
+      this.getLocalSecret()
+    );
   }
 
   public generateSharedUserHashKey(publicKey: CoinPublicKey): bigint {
-    return this.generateHashKey(this.publicKeyToBytes(publicKey).bytes, this.getSharedSecret());
+    return this.generateHashKey(
+      this.publicKeyToBytes(publicKey).bytes,
+      this.getSharedSecret()
+    );
   }
 }
