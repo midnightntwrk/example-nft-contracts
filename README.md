@@ -2,7 +2,7 @@
 
 This project is built on the [Midnight Network](https://midnight.network/).
 
-[![Generic badge](https://img.shields.io/badge/Compact%20Toolchain-0.30.0-1abc9c.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/TypeScript-5.8.3-blue.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/Compact%20Toolchain-0.31.0-1abc9c.svg)](https://shields.io/) [![Generic badge](https://img.shields.io/badge/TypeScript-5.8.3-blue.svg)](https://shields.io/)
 
 Example NFT smart contracts for the Midnight blockchain written in the Compact language (Minokawa). Includes two implementations:
 
@@ -47,7 +47,7 @@ curl --proto '=https' --tlsv1.2 -LsSf https://github.com/midnightntwrk/compact/r
 source $HOME/.local/bin/env
 
 # Install the toolchain version used by this project
-compact update 0.30.0
+compact update 0.31.0
 ```
 
 ## Quick Start
@@ -73,6 +73,8 @@ Add this repository as a dependency:
   }
 }
 ```
+
+The canonical import path consumers use is `@midnight-ntwrk/example-nft-contracts/contracts/nft/src/modules/Nft` (and `.../contracts/nft-zk/src/modules/NftZk` for the ZK variant).
 
 Then import the module in your Compact contract:
 
