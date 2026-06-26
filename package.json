@@ -1,6 +1,6 @@
 {
   "name": "@midnight-ntwrk/example-nft-contracts",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "NFT smart contract examples for the Midnight blockchain, including a standard public NFT and a privacy-preserving ZK NFT",
   "license": "Apache-2.0",
   "author": "Midnight Foundation",
@@ -8,8 +8,10 @@
     "type": "git",
     "url": "https://github.com/midnightntwrk/example-nft-contracts.git"
   },
-  "private": true,
   "type": "module",
+  "files": [
+    "contracts"
+  ],
   "scripts": {
     "compact": "compact compile contracts/nft/src/nft.compact contracts/managed/nft && compact compile contracts/nft-zk/src/nft-zk.compact contracts/managed/nft-zk",
     "test": "vitest run",
@@ -30,11 +32,9 @@
     "vitest": "^4.0.0"
   },
   "dependencies": {
-    "@midnight-ntwrk/compact-runtime": "^0.16.0",
-    "@midnight-ntwrk/ledger-v8": "^8.0.3",
-    "@midnight-ntwrk/midnight-js-network-id": "^4.0.4",
-    "@midnight-ntwrk/midnight-js-utils": "^4.0.4",
-    "@midnight-ntwrk/wallet-sdk-address-format": "^3.0.0"
+    "@midnight-ntwrk/compact-runtime": "0.16.0",
+    "@midnight-ntwrk/midnight-js-network-id": "4.1.1",
+    "@midnight-ntwrk/midnight-js-utils": "4.1.1"
   },
   "packageManager": "yarn@1.22.22"
 }
