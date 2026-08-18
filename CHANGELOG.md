@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Undeployed deploy and mint example for NFT-ZK (`examples/undeployed`), including local Docker Compose matching midnight-local-dev image tags and Fly.io templates that keep the node 6PN-internal and expose the IPv4-only proof-server over public HTTPS.
+- Simulator test that `mintAdmin` rejects an admin secret that does not match the constructor-derived public key.
+
 ## [0.2.0]
 
 ### Changed

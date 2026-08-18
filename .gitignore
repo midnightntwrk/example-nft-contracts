@@ -21,6 +21,9 @@ coverage
 # Compact
 managed/
 
+# Undeployed deploy state (admin secret + contract address)
+examples/undeployed/.undeployed-state.json
+
 # Environment
 .env
 *.env

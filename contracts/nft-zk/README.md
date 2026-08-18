@@ -21,7 +21,7 @@ contracts/nft-zk/
 │   │   └── NftZk.compact          # Reusable NFT-ZK module
 │   └── test/
 │       ├── nft-zk-simulator.ts    # Contract simulator
-│       └── nft-zk.test.ts         # Test suite (22 tests)
+│       └── nft-zk.test.ts         # Test suite (23 tests)
 ├── CONTRACT.md
 └── README.md
 ```
