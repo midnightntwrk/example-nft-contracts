@@ -1,0 +1,46 @@
+# Midnight standalone node on Fly.io (6PN-internal only).
+#
+# INVARIANTS:
+# * Exactly one machine (`flyctl scale count 1`). Two = two chain participants.
+# * Never auto-stop: this is stateful chain data.
+# * NO [http_service]. Node RPC (ws://:9944) stays on the private 6PN network.
+#   Deploy/mint from a laptop via `flyctl proxy 9944:9944 -a nft-undeployed-node`.
+# * If the /data volume is destroyed, previously deployed contract addresses
+#   become invalid.
+#
+# Deploy: flyctl deploy -c examples/undeployed/fly/node/fly.toml --remote-only
+
+app = "nft-undeployed-node"
+primary_region = "iad"
+
+# Bind RPC to IPv6 so other apps on the same 6PN network can reach
+# nft-undeployed-node.internal:9944. Fly's private network is IPv6-only.
+[processes]
+app = "--alice --force-authoring --experimental-rpc-endpoint \"listen-addr=[::]:9944,methods=unsafe\""
+
+[build]
+  image = "midnightntwrk/midnight-node:1.0.0"
+
+[env]
+  CFG_PRESET = "dev"
+  SIDECHAIN_BLOCK_BENEFICIARY = "04bcf7ad3be7a5c790460be82a713af570f22e0f801f6659ab8e84a52be6969e"
+
+[mounts]
+  source = "chain_data"
+  destination = "/node/chain"
+
+[[services]]
+  internal_port = 9944
+  protocol = "tcp"
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+  [[services.ports]]
+    port = 9944
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory = "1gb"

@@ -1,5 +1,5 @@
 {
-  "include": ["contracts/**/*.ts"],
+  "include": ["contracts/**/*.ts", "examples/**/*.ts"],
   "exclude": ["contracts/managed/**"],
   "compilerOptions": {
     "declaration": true,

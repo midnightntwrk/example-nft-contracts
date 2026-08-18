@@ -1,0 +1,40 @@
+# Midnight indexer (public HTTPS + WSS).
+#
+# Deploy: flyctl deploy -c examples/undeployed/fly/indexer/fly.toml --remote-only
+
+app = "nft-undeployed-indexer"
+primary_region = "iad"
+
+[build]
+  image = "midnightntwrk/indexer-standalone:4.3.3"
+
+[env]
+  RUST_LOG = "indexer=info,chain_indexer=info,indexer_api=info,wallet_indexer=info,indexer_common=info,fastrace_opentelemetry=off,info"
+  APP__INFRA__NODE__URL = "ws://nft-undeployed-node.internal:9944"
+  APP__APPLICATION__NETWORK_ID = "undeployed"
+  APP__INFRA__STORAGE__PASSWORD = "indexer"
+  APP__INFRA__PUB_SUB__PASSWORD = "indexer"
+  APP__INFRA__LEDGER_STATE_STORAGE__PASSWORD = "indexer"
+  APP__INFRA__SECRET = "303132333435363738393031323334353637383930313233343536373839303132"
+  APP__INFRA__SPO_NODE__URL = "ws://nft-undeployed-node.internal:9944"
+  APP__INFRA__SPO_NODE__BLOCKFROST_ID = "e2e-test-dummy-id"
+  # Fly 6PN is IPv6-only; bind GraphQL to all IPv6 addresses.
+  APP__INFRA__API__ADDRESS = "::"
+
+[http_service]
+  internal_port = 8088
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "requests"
+    hard_limit = 500
+    soft_limit = 400
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory = "1gb"

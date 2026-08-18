@@ -154,6 +154,15 @@ describe("NFT-ZK Contract Tests", () => {
     expect(() => simulator.burnAdmin(999n)).toThrow();
   });
 
+  it("should reject mintAdmin when admin secret does not match constructor key", () => {
+    const simulator = new NftZkSimulator();
+    const alice = simulator.createPublicKey("Alice");
+    const wrong = new Uint8Array(32);
+    wrong.fill(0xab);
+    simulator.setAdminSecret(wrong);
+    expect(() => simulator.mintAdmin(alice, 1n)).toThrow();
+  });
+
   it("should prevent minting duplicate token IDs", () => {
     const simulator = new NftZkSimulator();
     const alice = simulator.createPublicKey("Alice");

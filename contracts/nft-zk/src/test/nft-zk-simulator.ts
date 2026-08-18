@@ -146,6 +146,20 @@ export class NftZkSimulator {
     ).context;
   }
 
+  /**
+   * Replace the admin secret in private state. Used to prove mintAdmin
+   * rejects a witness that does not match the constructor-derived public key.
+   */
+  public setAdminSecret(adminSecretKey: Uint8Array): void {
+    this.circuitContext = {
+      ...this.circuitContext,
+      currentPrivateState: {
+        ...this.circuitContext.currentPrivateState,
+        adminSecretKey
+      }
+    };
+  }
+
   public burnAdmin(tokenId: bigint): void {
     this.circuitContext = this.contract.impureCircuits.burnAdmin(
       this.circuitContext,

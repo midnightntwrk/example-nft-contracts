@@ -1,0 +1,38 @@
+# Midnight proof-server (public HTTPS).
+#
+# The proof-server binary is IPv4-only. Fly's private 6PN network is IPv6-only,
+# so do NOT route prove traffic over *.internal. Point browsers and midnight-js
+# at this app's public HTTPS URL, which enters the machine over IPv4 via
+# fly-proxy. No socat sidecar is needed.
+#
+# RAM: cold-load of a k=13 proving key needs ~1.5 GB. Do not shrink memory
+# below 2gb. Never auto-stop — a cold start is minutes of "Proving…".
+#
+# Deploy: flyctl deploy -c examples/undeployed/fly/proof/fly.toml --remote-only
+
+app = "nft-undeployed-proof"
+primary_region = "iad"
+
+[build]
+  image = "midnightntwrk/proof-server:8.1.0"
+
+[processes]
+  app = "midnight-proof-server -v"
+
+[http_service]
+  internal_port = 6300
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "requests"
+    hard_limit = 4
+    soft_limit = 2
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 2
+  memory = "2gb"

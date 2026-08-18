@@ -32,6 +32,8 @@ example-nft-contracts/
 │       │   └── test/                # Unit tests and simulator
 │       ├── CONTRACT.md
 │       └── README.md
+├── examples/
+│   └── undeployed/                  # Deploy + mint NFT-ZK on local or Fly Undeployed
 ```
 
 ## Prerequisites
@@ -61,6 +63,19 @@ yarn test:compile
 ```
 
 Running `yarn compact` and `yarn test` separately is also supported.
+
+## Deploy NFT-ZK on Undeployed
+
+The simulator tests do not put a contract on a chain. To deploy NFT-ZK and call `mintAdmin` with real admin-keypair authorization:
+
+```bash
+yarn compact
+yarn undeployed:up
+yarn undeployed:deploy
+yarn undeployed:mint
+```
+
+See [examples/undeployed/README.md](examples/undeployed/README.md). Hosting the same stack on Fly.io (public HTTPS proof server — the binary is IPv4-only, Fly 6PN is IPv6-only) is documented in [examples/undeployed/FLY.md](examples/undeployed/FLY.md).
 
 ## Using as a Module
 

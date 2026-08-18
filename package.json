@@ -14,27 +14,42 @@
     "compact": "compact compile contracts/nft/src/nft.compact contracts/managed/nft && compact compile contracts/nft-zk/src/nft-zk.compact contracts/managed/nft-zk",
     "test": "vitest run",
     "test:compile": "yarn compact && vitest run",
-    "lint": "eslint contracts",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "lint": "eslint contracts examples",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "undeployed:up": "docker compose -f examples/undeployed/docker-compose.yml up -d --wait",
+    "undeployed:down": "docker compose -f examples/undeployed/docker-compose.yml down",
+    "undeployed:deploy": "tsx examples/undeployed/deploy.ts",
+    "undeployed:mint": "tsx examples/undeployed/mint.ts",
+    "undeployed:e2e": "yarn undeployed:up && yarn compact && yarn undeployed:deploy && yarn undeployed:mint"
   },
   "devDependencies": {
     "@eslint/js": "^9.28.0",
     "@types/node": "^22.15.29",
+    "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.41.0",
     "@typescript-eslint/parser": "^8.41.0",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.4.1",
     "prettier": "^3.2.5",
+    "tsx": "^4.20.3",
     "typescript": "^5.8.3",
     "vitest": "^4.0.0"
   },
   "dependencies": {
     "@midnight-ntwrk/compact-runtime": "^0.16.0",
     "@midnight-ntwrk/ledger-v8": "^8.0.3",
-    "@midnight-ntwrk/midnight-js-network-id": "^4.0.4",
-    "@midnight-ntwrk/midnight-js-utils": "^4.0.4",
-    "@midnight-ntwrk/wallet-sdk-address-format": "^3.0.0"
+    "@midnight-ntwrk/midnight-js-contracts": "^4.1.1",
+    "@midnight-ntwrk/midnight-js-http-client-proof-provider": "^4.1.1",
+    "@midnight-ntwrk/midnight-js-indexer-public-data-provider": "^4.1.1",
+    "@midnight-ntwrk/midnight-js-level-private-state-provider": "^4.1.1",
+    "@midnight-ntwrk/midnight-js-network-id": "^4.1.1",
+    "@midnight-ntwrk/midnight-js-node-zk-config-provider": "^4.1.1",
+    "@midnight-ntwrk/midnight-js-protocol": "^4.1.1",
+    "@midnight-ntwrk/midnight-js-utils": "^4.1.1",
+    "@midnight-ntwrk/testkit-js": "^4.1.1",
+    "@midnight-ntwrk/wallet-sdk-address-format": "^3.0.0",
+    "ws": "^8.18.3"
   },
   "packageManager": "yarn@1.22.22"
 }
