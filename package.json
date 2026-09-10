@@ -27,7 +27,7 @@
     "eslint-plugin-prettier": "5.5.5",
     "prettier": "3.8.1",
     "typescript": "5.9.3",
-    "vitest": "4.1.8"
+    "vitest": "4.1.11"
   },
   "dependencies": {
     "@midnight-ntwrk/compact-runtime": "^0.16.0",
